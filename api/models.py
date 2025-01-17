@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 
+
 class Subject(models.Model):  
     name = models.CharField(max_length=200)  
     description = models.TextField(blank=True)  
@@ -24,13 +25,17 @@ class Course(models.Model):
 
 class Student(models.Model):  
     user = models.OneToOneField(User, on_delete=models.CASCADE)  
-    courses = models.ManyToManyField(Course, related_name='rolls_in')   
-    exams_taken = models.ManyToManyField(Exam, related_name='takes') 
-    subject = models.ForeignKey(Subject, related_name='have', on_delete=models.CASCADE) 
-    
+    courses = models.ManyToManyField(Course, related_name='rolls_in',blank=True)   
+    exams_taken = models.ManyToManyField(Exam, related_name='takes',blank=True) 
+    subject = models.ForeignKey(Subject, related_name='have', on_delete=models.CASCADE,blank=True,null=True) 
+    student_year=models.IntegerField(blank=True,null=True)
+    student_id= models.IntegerField(blank=True,null=True)
+
+
+
 class Teacher(models.Model):  
     user = models.OneToOneField(User, on_delete=models.CASCADE)  
-    subject = models.ForeignKey(Subject, related_name='teachers', on_delete=models.CASCADE)  
+    subject = models.ForeignKey(Subject, related_name='teachers', on_delete=models.CASCADE,blank=True,null=True)  
 
 
 class Video(models.Model):  

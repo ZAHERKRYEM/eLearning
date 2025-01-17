@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     "rest_framework",
     "rest_framework_simplejwt",
+    'rest_framework_simplejwt.token_blacklist',
     "corsheaders",
     'api'
 ]
@@ -136,8 +137,10 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=10),
-    "REFRESH_TOKEN_LIFETIME": timedelta(minutes=20),
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=15),
     "AUTH_HEADER_TYPES": ("Bearer",),
+    'BLACKLIST_AFTER_ROTATION': True,
+    'TOKEN_BLACKLISTING': 'rest_framework_simplejwt.token_blacklist.models.BlacklistedToken',
 }
 

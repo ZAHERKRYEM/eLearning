@@ -1,22 +1,11 @@
-from django.urls import path, include  
-from rest_framework.routers import DefaultRouter  
-from .views import (  
-    SubjectViewSet,  
-    CourseViewSet,  
-    StudentViewSet,  
-    TeacherViewSet,  
-    ExamViewSet,  
-    VideoViewSet  
-)  
-
-router = DefaultRouter()  
-router.register(r'subjects', SubjectViewSet)  
-router.register(r'courses', CourseViewSet)  
-router.register(r'students', StudentViewSet)  
-router.register(r'teachers', TeacherViewSet)  
-router.register(r'exams', ExamViewSet)  
-router.register(r'videos', VideoViewSet)  
+from django.urls import path  
+from .views import StudentCreateView ,LoginView ,LogoutView
+from rest_framework_simplejwt.views import TokenRefreshView
 
 urlpatterns = [  
-    path('', include(router.urls)),  
+    path('register/', StudentCreateView.as_view(), name='register_user'),  
+    path('login/', LoginView.as_view(), name='login'),
+    path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('logout/', LogoutView.as_view(), name='logout'),
+
 ]
