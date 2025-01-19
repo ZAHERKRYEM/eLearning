@@ -33,30 +33,32 @@ class UserSerializer(serializers.ModelSerializer):
 class StudentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Student
-        fields = ['user', 'student_year', 'student_id']
+        fields = ['student_year', 'student_id']
 
     def create(self, validated_data):
         return Student.objects.create(**validated_data)
 
     def update(self, instance, validated_data):
-   
         instance.student_year = validated_data.get('student_year', instance.student_year)
         instance.student_id = validated_data.get('student_id', instance.student_id)
         instance.save()
         return instance
 
+
 class TeacherSerializer(serializers.ModelSerializer):
     class Meta:
         model = Teacher
-        fields = ['user', 'subjects', 'courses', 'specialty']
+        fields = ['student_year', 'student_id']
 
     def create(self, validated_data):
-        return Teacher.objects.create(**validated_data)
+
+        teacher = Teacher.objects.create(**validated_data)
+
+        return teacher
 
     def update(self, instance, validated_data):
-        instance.specialty = validated_data.get('specialty', instance.specialty)
-        instance.subjects.set(validated_data.get('subjects', instance.subjects.all()))
-        instance.courses.set(validated_data.get('courses', instance.courses.all()))
+        instance.student_year = validated_data.get('student_year', instance.student_year)
+        instance.student_id = validated_data.get('student_id', instance.student_id)
         instance.save()
         return instance
 

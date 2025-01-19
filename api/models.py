@@ -42,7 +42,7 @@ class Student(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)  
     courses = models.ManyToManyField(Course, related_name='students', blank=True)   
     exams_taken = models.ManyToManyField(Exam, related_name='students', blank=True) 
-    student_year = models.IntegerField(blank=True, null=True)
+    student_year = models.CharField(max_length=20,blank=True, null=True)
     student_id = models.IntegerField(blank=True, null=True)
 
     def __str__(self):
@@ -53,7 +53,9 @@ class Teacher(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)  
     subjects = models.ManyToManyField(Subject, related_name='teachers', blank=True) 
     courses = models.ManyToManyField(Course, related_name='teachers', blank=True) 
-    specialty = models.CharField(max_length=200, blank=True) 
+    specialty = models.CharField(max_length=200, blank=True, null=True) 
+    student_year = models.CharField(max_length=20,blank=True, null=True)
+    student_id = models.IntegerField(blank=True, null=True)
 
     def __str__(self):
         return self.user.username

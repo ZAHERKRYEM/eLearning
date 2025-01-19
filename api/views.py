@@ -9,18 +9,58 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from django.contrib.auth.models import User
 
+
 class UserCreateAPIView(APIView):
     def post(self, request):
-        serializer = UserSerializer(data=request.data)
-        if serializer.is_valid():
-            user = serializer.save()
-            refresh = RefreshToken.for_user(user)
-            tokens = {
-                'refresh': str(refresh),
-                'access': str(refresh.access_token),
-            }
-            return Response({'user': serializer.data, 'tokens': tokens}, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        user_data = request.data.get('user')  
+        profile_data = request.data.get('profile') 
+        is_staff = user_data.get('is_staff', False)  
+
+
+        user_serializer = UserSerializer(data=user_data)
+        if user_serializer.is_valid():
+            user = user_serializer.save()
+
+  
+            if is_staff:
+                serializer = TeacherSerializer(data=profile_data)
+            else:
+                serializer = StudentSerializer(data=profile_data)
+
+            if serializer.is_valid():
+
+                profile = serializer.save(user=user)
+
+             
+                refresh = RefreshToken.for_user(user)
+                tokens = {
+                    'refresh': str(refresh),
+                    'access': str(refresh.access_token),
+                }
+                return Response({
+                    "status": True,
+                    "data": {
+                        "user": user_serializer.data,
+                        "profile": serializer.data,
+                        "tokens": tokens
+                    },
+                    "message": "User and profile created successfully",
+                    "status_code": 201
+                }, status=status.HTTP_201_CREATED)
+
+            return Response({
+                "status": False,
+                "data": serializer.errors,
+                "message": "Profile creation failed",
+                "status_code": 400
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response({
+            "status": False,
+            "data": user_serializer.errors,
+            "message": "User creation failed",
+            "status_code": 400
+        }, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UserDetailAPIView(APIView):
@@ -131,16 +171,24 @@ class LoginView(TokenObtainPairView):
         if user is not None:
             refresh = RefreshToken.for_user(user)
             return Response({
-                'id': user.id,
-                'username': user.username,
-                'email': user.email,
-                'access': str(refresh.access_token),
-                'refresh': str(refresh),
+                "status": True,
+                "data": {
+                    "id": user.id,
+                    "username": user.username,
+                    "email": user.email,
+                    "access": str(refresh.access_token),
+                    "refresh": str(refresh),
+                },
+                "message": "Login successful",
+                "status_code": 200
             }, status=status.HTTP_200_OK)
         else:
-            return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
-
-
+            return Response({
+                "status": False,
+                "data": {},
+                "message": "Invalid credentials",
+                "status_code": 401
+            }, status=status.HTTP_401_UNAUTHORIZED)
 
 class LogoutView(APIView):
     permission_classes = [IsAuthenticated]
@@ -150,6 +198,16 @@ class LogoutView(APIView):
             refresh_token = request.data.get('refresh')
             token = RefreshToken(refresh_token)
             token.blacklist()
-            return Response({"detail": "Successfully logged out."}, status=status.HTTP_205_RESET_CONTENT)
+            return Response({
+                "status": True,
+                "data": {},
+                "message": "Successfully logged out",
+                "status_code": 205
+            }, status=status.HTTP_205_RESET_CONTENT)
         except Exception as e:
-            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({
+                "status": False,
+                "data": {},
+                "message": str(e),
+                "status_code": 400
+            }, status=status.HTTP_400_BAD_REQUEST)
