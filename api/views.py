@@ -1,4 +1,4 @@
-from rest_framework import generics,status
+from rest_framework import status
 from rest_framework.response import Response
 from .models import Student, Teacher
 from .serializers import TeacherSerializer, UserSerializer,StudentSerializer
@@ -7,7 +7,7 @@ from django.contrib.auth import authenticate
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
-from django.contrib.auth.models import User
+
 
 
 class UserCreateAPIView(APIView):
@@ -164,10 +164,10 @@ class TeacherAPIView(APIView):
         
 class LoginView(TokenObtainPairView):
     def post(self, request):
-        username = request.data.get('username')
+        email = request.data.get('email')
         password = request.data.get('password')
 
-        user = authenticate(username=username, password=password)
+        user = authenticate(username=email, password=password)
         if user is not None:
             refresh = RefreshToken.for_user(user)
             return Response({
@@ -211,3 +211,292 @@ class LogoutView(APIView):
                 "message": str(e),
                 "status_code": 400
             }, status=status.HTTP_400_BAD_REQUEST)
+
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from .models import Subject, Course, Exam, Video
+from .serializers import SubjectSerializer, CourseSerializer, ExamSerializer, VideoSerializer
+
+class SubjectAPIView(APIView):
+    def get(self, request):
+        subjects = Subject.objects.all()
+        serializer = SubjectSerializer(subjects, many=True)
+        return Response({
+            "status": True,
+            "data": serializer.data,
+            "message": "Subjects retrieved successfully",
+            "status_code": 200
+        }, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        serializer = SubjectSerializer(data=request.data)
+        if serializer.is_valid():
+            subject = serializer.save()
+            return Response({
+                "status": True,
+                "data": SubjectSerializer(subject).data,
+                "message": "Subject created successfully",
+                "status_code": 201
+            }, status=status.HTTP_201_CREATED)
+        return Response({
+            "status": False,
+            "data": serializer.errors,
+            "message": "Subject creation failed",
+            "status_code": 400
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+    def put(self, request, pk):
+        try:
+            subject = Subject.objects.get(pk=pk)
+        except Subject.DoesNotExist:
+            return Response({
+                "status": False,
+                "message": "Subject not found",
+                "status_code": 404
+            }, status=status.HTTP_404_NOT_FOUND)
+        
+        serializer = SubjectSerializer(subject, data=request.data)
+        if serializer.is_valid():
+            subject = serializer.save()
+            return Response({
+                "status": True,
+                "data": SubjectSerializer(subject).data,
+                "message": "Subject updated successfully",
+                "status_code": 200
+            }, status=status.HTTP_200_OK)
+        return Response({
+            "status": False,
+            "data": serializer.errors,
+            "message": "Subject update failed",
+            "status_code": 400
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        try:
+            subject = Subject.objects.get(pk=pk)
+            subject.delete()
+            return Response({
+                "status": True,
+                "message": "Subject deleted successfully",
+                "status_code": 204
+            }, status=status.HTTP_204_NO_CONTENT)
+        except Subject.DoesNotExist:
+            return Response({
+                "status": False,
+                "message": "Subject not found",
+                "status_code": 404
+            }, status=status.HTTP_404_NOT_FOUND)
+
+# Similar views for Course, Exam, Video with the same structure
+
+class CourseAPIView(APIView):
+    def get(self, request):
+        courses = Course.objects.all()
+        serializer = CourseSerializer(courses, many=True)
+        return Response({
+            "status": True,
+            "data": serializer.data,
+            "message": "Courses retrieved successfully",
+            "status_code": 200
+        }, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        serializer = CourseSerializer(data=request.data)
+        if serializer.is_valid():
+            course = serializer.save()
+            return Response({
+                "status": True,
+                "data": CourseSerializer(course).data,
+                "message": "Course created successfully",
+                "status_code": 201
+            }, status=status.HTTP_201_CREATED)
+        return Response({
+            "status": False,
+            "data": serializer.errors,
+            "message": "Course creation failed",
+            "status_code": 400
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+    def put(self, request, pk):
+        try:
+            course = Course.objects.get(pk=pk)
+        except Course.DoesNotExist:
+            return Response({
+                "status": False,
+                "message": "Course not found",
+                "status_code": 404
+            }, status=status.HTTP_404_NOT_FOUND)
+        
+        serializer = CourseSerializer(course, data=request.data)
+        if serializer.is_valid():
+            course = serializer.save()
+            return Response({
+                "status": True,
+                "data": CourseSerializer(course).data,
+                "message": "Course updated successfully",
+                "status_code": 200
+            }, status=status.HTTP_200_OK)
+        return Response({
+            "status": False,
+            "data": serializer.errors,
+            "message": "Course update failed",
+            "status_code": 400
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        try:
+            course = Course.objects.get(pk=pk)
+            course.delete()
+            return Response({
+                "status": True,
+                "message": "Course deleted successfully",
+                "status_code": 204
+            }, status=status.HTTP_204_NO_CONTENT)
+        except Course.DoesNotExist:
+            return Response({
+                "status": False,
+                "message": "Course not found",
+                "status_code": 404
+            }, status=status.HTTP_404_NOT_FOUND)
+
+# Repeat similar structure for ExamAPIView and VideoAPIView.
+class ExamAPIView(APIView):
+    def get(self, request):
+        exams = Exam.objects.all()
+        serializer = ExamSerializer(exams, many=True)
+        return Response({
+            "status": True,
+            "data": serializer.data,
+            "message": "Exams retrieved successfully",
+            "status_code": 200
+        }, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        serializer = ExamSerializer(data=request.data)
+        if serializer.is_valid():
+            exam = serializer.save()
+            return Response({
+                "status": True,
+                "data": ExamSerializer(exam).data,
+                "message": "Exam created successfully",
+                "status_code": 201
+            }, status=status.HTTP_201_CREATED)
+        return Response({
+            "status": False,
+            "data": serializer.errors,
+            "message": "Exam creation failed",
+            "status_code": 400
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+    def put(self, request, pk):
+        try:
+            exam = Exam.objects.get(pk=pk)
+        except Exam.DoesNotExist:
+            return Response({
+                "status": False,
+                "message": "Exam not found",
+                "status_code": 404
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = ExamSerializer(exam, data=request.data)
+        if serializer.is_valid():
+            exam = serializer.save()
+            return Response({
+                "status": True,
+                "data": ExamSerializer(exam).data,
+                "message": "Exam updated successfully",
+                "status_code": 200
+            }, status=status.HTTP_200_OK)
+        return Response({
+            "status": False,
+            "data": serializer.errors,
+            "message": "Exam update failed",
+            "status_code": 400
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        try:
+            exam = Exam.objects.get(pk=pk)
+            exam.delete()
+            return Response({
+                "status": True,
+                "message": "Exam deleted successfully",
+                "status_code": 204
+            }, status=status.HTTP_204_NO_CONTENT)
+        except Exam.DoesNotExist:
+            return Response({
+                "status": False,
+                "message": "Exam not found",
+                "status_code": 404
+            }, status=status.HTTP_404_NOT_FOUND)
+class VideoAPIView(APIView):
+    def get(self, request):
+        videos = Video.objects.all()
+        serializer = VideoSerializer(videos, many=True)
+        return Response({
+            "status": True,
+            "data": serializer.data,
+            "message": "Videos retrieved successfully",
+            "status_code": 200
+        }, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        serializer = VideoSerializer(data=request.data)
+        if serializer.is_valid():
+            video = serializer.save()
+            return Response({
+                "status": True,
+                "data": VideoSerializer(video).data,
+                "message": "Video created successfully",
+                "status_code": 201
+            }, status=status.HTTP_201_CREATED)
+        return Response({
+            "status": False,
+            "data": serializer.errors,
+            "message": "Video creation failed",
+            "status_code": 400
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+    def put(self, request, pk):
+        try:
+            video = Video.objects.get(pk=pk)
+        except Video.DoesNotExist:
+            return Response({
+                "status": False,
+                "message": "Video not found",
+                "status_code": 404
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = VideoSerializer(video, data=request.data)
+        if serializer.is_valid():
+            video = serializer.save()
+            return Response({
+                "status": True,
+                "data": VideoSerializer(video).data,
+                "message": "Video updated successfully",
+                "status_code": 200
+            }, status=status.HTTP_200_OK)
+        return Response({
+            "status": False,
+            "data": serializer.errors,
+            "message": "Video update failed",
+            "status_code": 400
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        try:
+            video = Video.objects.get(pk=pk)
+            video.delete()
+            return Response({
+                "status": True,
+                "message": "Video deleted successfully",
+                "status_code": 204
+            }, status=status.HTTP_204_NO_CONTENT)
+        except Video.DoesNotExist:
+            return Response({
+                "status": False,
+                "message": "Video not found",
+                "status_code": 404
+            }, status=status.HTTP_404_NOT_FOUND)

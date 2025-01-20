@@ -1,6 +1,5 @@
 from rest_framework import serializers
-from django.contrib.auth.models import User
-from .models import Student,Teacher
+from .models import Course, Exam, Student, Subject,Teacher, Video,User
 from rest_framework_simplejwt.tokens import RefreshToken
 
 class UserSerializer(serializers.ModelSerializer):
@@ -63,48 +62,80 @@ class TeacherSerializer(serializers.ModelSerializer):
         return instance
 
 
+class SubjectSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Subject
+        fields = ['id', 'name', 'description']
 
-# class SubjectSerializer(serializers.ModelSerializer):  
-#     class Meta:  
-#         model = Subject  
-#         fields = ['id', 'name', 'description']  
+    def create(self, validated_data):
+        return Subject.objects.create(**validated_data)
 
-
-# class CourseSerializer(serializers.ModelSerializer):  
-#     subject = SubjectSerializer()   
-
-#     class Meta:  
-#         model = Course  
-#         fields = ['id', 'subject', 'title', 'description', 'start_date', 'end_date']  
-
-
-# class StudentSerializer(serializers.ModelSerializer):  
-#     courses = CourseSerializer(many=True)  
-#     subject = SubjectSerializer()  
-
-#     class Meta:  
-#         model = Student  
-#         fields = ['id', 'user', 'courses', 'subject']  
+    def update(self, instance, validated_data):
+        instance.name = validated_data.get('name', instance.name)
+        instance.description = validated_data.get('description', instance.description)
+        instance.save()
+        return instance
 
 
-# class TeacherSerializer(serializers.ModelSerializer):  
-#     subject = SubjectSerializer()  
+class CourseSerializer(serializers.ModelSerializer):
+    subject = serializers.PrimaryKeyRelatedField(queryset=Subject.objects.all())
 
-#     class Meta:  
-#         model = Teacher  
-#         fields = ['id', 'user', 'subject']  
+    class Meta:
+        model = Course
+        fields = ['id', 'subject', 'title', 'description', 'start_date', 'end_date', 'is_active']
+
+    def create(self, validated_data):
+        return Course.objects.create(**validated_data)
+
+    def update(self, instance, validated_data):
+        instance.subject = validated_data.get('subject', instance.subject)
+        instance.title = validated_data.get('title', instance.title)
+        instance.description = validated_data.get('description', instance.description)
+        instance.start_date = validated_data.get('start_date', instance.start_date)
+        instance.end_date = validated_data.get('end_date', instance.end_date)
+        instance.is_active = validated_data.get('is_active', instance.is_active)
+        instance.save()
+        return instance
 
 
-# class ExamSerializer(serializers.ModelSerializer):  
-#     class Meta:  
-#         model = Exam  
-#         fields = ['id', 'title', 'date', 'duration', 'total_marks']  
+class ExamSerializer(serializers.ModelSerializer):
+    teacher = serializers.PrimaryKeyRelatedField(queryset=Teacher.objects.all())
+    subject = serializers.PrimaryKeyRelatedField(queryset=Subject.objects.all())
+
+    class Meta:
+        model = Exam
+        fields = ['id', 'teacher', 'subject', 'title', 'date', 'duration', 'total_marks']
+
+    def create(self, validated_data):
+        return Exam.objects.create(**validated_data)
+
+    def update(self, instance, validated_data):
+        instance.teacher = validated_data.get('teacher', instance.teacher)
+        instance.subject = validated_data.get('subject', instance.subject)
+        instance.title = validated_data.get('title', instance.title)
+        instance.date = validated_data.get('date', instance.date)
+        instance.duration = validated_data.get('duration', instance.duration)
+        instance.total_marks = validated_data.get('total_marks', instance.total_marks)
+        instance.save()
+        return instance
 
 
-# class VideoSerializer(serializers.ModelSerializer):  
-#     course = CourseSerializer()  
-#     teacher = TeacherSerializer()  
+class VideoSerializer(serializers.ModelSerializer):
+    course = serializers.PrimaryKeyRelatedField(queryset=Course.objects.all())
+    teacher = serializers.PrimaryKeyRelatedField(queryset=Teacher.objects.all())
 
-#     class Meta:  
-#         model = Video  
-#         fields = ['id', 'course', 'teacher', 'title', 'url', 'description']
+    class Meta:
+        model = Video
+        fields = ['id', 'course', 'teacher', 'title', 'url', 'description', 'upload_date']
+
+    def create(self, validated_data):
+        return Video.objects.create(**validated_data)
+
+    def update(self, instance, validated_data):
+        instance.course = validated_data.get('course', instance.course)
+        instance.teacher = validated_data.get('teacher', instance.teacher)
+        instance.title = validated_data.get('title', instance.title)
+        instance.url = validated_data.get('url', instance.url)
+        instance.description = validated_data.get('description', instance.description)
+        instance.save()
+        return instance
