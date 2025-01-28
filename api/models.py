@@ -48,7 +48,9 @@ class Course(models.Model):
     title = models.CharField(max_length=200)    
     description = models.TextField(blank=True)  
     start_date = models.DateField()              
-    end_date = models.DateField()              
+    end_date = models.DateField()    
+    student_year = models.CharField(max_length=20,blank=True, null=True)
+
     is_active = models.BooleanField(default=True) 
 
     def __str__(self):

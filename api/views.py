@@ -7,7 +7,45 @@ from django.contrib.auth import authenticate
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
+from rest_framework_simplejwt.views import TokenRefreshView
+from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 
+class Refreshtoken(TokenRefreshView):
+    
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+
+        try:
+          
+            serializer.is_valid(raise_exception=True)
+            response_data = {
+                "status": True,
+                "data": serializer.validated_data,
+                "message": "refresh successful",
+                "status_code": 200
+            }
+            return Response(response_data, status=status.HTTP_200_OK)
+        
+        except TokenError as e:
+           
+            response_data = {
+                "status": False,
+                "data": {},
+                "message": str(e),
+                "status_code": 400
+            }
+            return Response(response_data, status=status.HTTP_400_BAD_REQUEST)
+        
+        except InvalidToken as e:
+         
+            response_data = {
+                "status": False,
+                "data": {},
+                "message": "Invalid token provided.",
+                "status_code": 401
+            }
+            return Response(response_data, status=status.HTTP_401_UNAUTHORIZED)
 
 
 class UserCreateAPIView(APIView):
@@ -211,6 +249,219 @@ class LogoutView(APIView):
                 "message": str(e),
                 "status_code": 400
             }, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+
+class CourseSearchView(APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self, request):
+      
+        title = request.query_params.get('title', None)
+
+       
+        if not title:
+            return Response({
+                "status": False,
+                "data": {},
+                "message": "Title parameter is required.",
+                "status_code": 400
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+     
+        courses = Course.objects.filter(title__icontains=title)
+
+        if courses.exists():
+       
+            serializer = CourseSerializer(courses, many=True)
+            return Response({
+                "status": True,
+                "data": serializer.data,
+                "message": "Courses found successfully.",
+                "status_code": 200
+            }, status=status.HTTP_200_OK)
+        else:
+        
+            return Response({
+                "status": True,
+                "data": [],
+                "message": "No courses found.",
+                "status_code": 200
+            }, status=status.HTTP_200_OK)
+
+
+class CourseByYearView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+     
+        try:
+            student = Student.objects.get(user=request.user)
+
+         
+            student_year = student.student_year
+
+            if not student_year:
+                return Response({
+                    "status": False,
+                    "data": {},
+                    "message": "Student year is not set for the logged-in student.",
+                    "status_code": 400
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+      
+            course = Course.objects.filter(student_year=student_year).order_by('?')[:4]
+
+            if course.exists():
+                serializer = CourseSerializer(course, many=True)
+                return Response({
+                    "status": True,
+                    "data": serializer.data,
+                    "message": " course found successfully.",
+                    "status_code": 200
+                }, status=status.HTTP_200_OK)
+            else:
+                return Response({
+                    "status": True,
+                    "data": {},
+                    "message": "No course found for the given student year.",
+                    "status_code": 200
+                }, status=status.HTTP_200_OK)
+
+        except Student.DoesNotExist:
+            return Response({
+                "status": False,
+                "data": {},
+                "message": "Logged-in user is not associated with a student account.",
+                "status_code": 400
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        except Exception as e:
+            return Response({
+                "status": False,
+                "data": {},
+                "message": str(e),
+                "status_code": 500
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class OneCoursePerYearView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+          
+            years = Course.objects.values_list('student_year', flat=True).distinct()
+
+         
+            courses = []
+
+            for year in years:
+             
+                course = Course.objects.filter(student_year=year).order_by('?').first()
+                if course:
+                    courses.append(course)
+
+          
+            if courses:
+                serializer = CourseSerializer(courses, many=True)
+                return Response({
+                    "status": True,
+                    "data": serializer.data,
+                    "message": "Courses retrieved successfully.",
+                    "status_code": 200
+                }, status=status.HTTP_200_OK)
+            else:
+                return Response({
+                    "status": True,
+                    "data": [],
+                    "message": "No courses found.",
+                    "status_code": 200
+                }, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response({
+                "status": False,
+                "data": {},
+                "message": str(e),
+                "status_code": 500
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
+class AllCoursesView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+           
+            courses = Course.objects.all()
+
+            
+            if courses.exists():
+                serializer = CourseSerializer(courses, many=True)
+                return Response({
+                    "status": True,
+                    "data": serializer.data,
+                    "message": "All courses retrieved successfully.",
+                    "status_code": 200
+                }, status=status.HTTP_200_OK)
+            else:
+                return Response({
+                    "status": True,
+                    "data": [],
+                    "message": "No courses available.",
+                    "status_code": 200
+                }, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response({
+                "status": False,
+                "data": {},
+                "message": str(e),
+                "status_code": 500
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 from rest_framework.views import APIView

@@ -1,6 +1,6 @@
 from django.urls import path  
-from .views import TeacherAPIView, UserCreateAPIView,UserDetailAPIView ,LoginView ,LogoutView,StudentAPIView,SubjectAPIView, CourseAPIView, ExamAPIView, VideoAPIView
-from rest_framework_simplejwt.views import TokenRefreshView
+from .views import AllCoursesView, CourseByYearView, CourseSearchView, OneCoursePerYearView, TeacherAPIView,Refreshtoken, UserCreateAPIView,UserDetailAPIView ,LoginView ,LogoutView,StudentAPIView,SubjectAPIView, CourseAPIView, ExamAPIView, VideoAPIView
+
 
 urlpatterns = [  
     path('register/', UserCreateAPIView.as_view(), name='user-create'),
@@ -9,8 +9,16 @@ urlpatterns = [
     path('teacher/', TeacherAPIView.as_view(), name='teacher'),
 
     path('login/', LoginView.as_view(), name='login'),
-    path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('token/refresh/', Refreshtoken.as_view(), name='token_refresh'),
     path('logout/', LogoutView.as_view(), name='logout'),
+
+    path('courses/search/', CourseSearchView.as_view(), name='course_search'),
+    path('courses/by-year/', CourseByYearView.as_view(), name='course_by_year'),
+    path('courses/one-per-year/', OneCoursePerYearView.as_view(), name='one_course_per_year'),
+    path('courses/all/', AllCoursesView.as_view(), name='all_courses'),
+
+
+
 
      path('subjects/', SubjectAPIView.as_view(), name='subjects'),
     path('courses/', CourseAPIView.as_view(), name='courses'),

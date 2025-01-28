@@ -16,6 +16,7 @@ class UserSerializer(serializers.ModelSerializer):
             password=validated_data['password'],
             is_staff=validated_data['is_staff']
         )
+
         return user
 
     def update(self, instance, validated_data):
@@ -62,6 +63,15 @@ class TeacherSerializer(serializers.ModelSerializer):
         return instance
 
 
+
+class CourseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Course
+        fields = '__all__'
+
+
+
+
 class SubjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = Subject
@@ -77,25 +87,25 @@ class SubjectSerializer(serializers.ModelSerializer):
         return instance
 
 
-class CourseSerializer(serializers.ModelSerializer):
-    subject = serializers.PrimaryKeyRelatedField(queryset=Subject.objects.all())
+# class CourseSerializer(serializers.ModelSerializer):
+#     subject = serializers.PrimaryKeyRelatedField(queryset=Subject.objects.all())
 
-    class Meta:
-        model = Course
-        fields = ['id', 'subject', 'title', 'description', 'start_date', 'end_date', 'is_active']
+#     class Meta:
+#         model = Course
+#         fields = ['id', 'subject', 'title', 'description', 'start_date', 'end_date', 'is_active']
 
-    def create(self, validated_data):
-        return Course.objects.create(**validated_data)
+#     def create(self, validated_data):
+#         return Course.objects.create(**validated_data)
 
-    def update(self, instance, validated_data):
-        instance.subject = validated_data.get('subject', instance.subject)
-        instance.title = validated_data.get('title', instance.title)
-        instance.description = validated_data.get('description', instance.description)
-        instance.start_date = validated_data.get('start_date', instance.start_date)
-        instance.end_date = validated_data.get('end_date', instance.end_date)
-        instance.is_active = validated_data.get('is_active', instance.is_active)
-        instance.save()
-        return instance
+#     def update(self, instance, validated_data):
+#         instance.subject = validated_data.get('subject', instance.subject)
+#         instance.title = validated_data.get('title', instance.title)
+#         instance.description = validated_data.get('description', instance.description)
+#         instance.start_date = validated_data.get('start_date', instance.start_date)
+#         instance.end_date = validated_data.get('end_date', instance.end_date)
+#         instance.is_active = validated_data.get('is_active', instance.is_active)
+#         instance.save()
+#         return instance
 
 
 class ExamSerializer(serializers.ModelSerializer):
