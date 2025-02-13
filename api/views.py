@@ -208,18 +208,51 @@ class LoginView(TokenObtainPairView):
         user = authenticate(username=email, password=password)
         if user is not None:
             refresh = RefreshToken.for_user(user)
+            tokens = {
+                    'refresh': str(refresh),
+                    'access': str(refresh.access_token),
+
+                }
+            user_data={
+                "id": user.id,
+                "username": user.username,
+                "email": user.email,
+                "is_staff":user.is_staff
+            }
+            if user.is_staff:
+                profile=Teacher.objects.get(user=user)
+            else:
+                profile=Student.objects.get(user=user)
+
+            profile_data={
+                "student_year":profile.student_year,
+                "student_id": profile.student_id
+            }
             return Response({
-                "status": True,
-                "data": {
-                    "id": user.id,
-                    "username": user.username,
-                    "email": user.email,
-                    "access": str(refresh.access_token),
-                    "refresh": str(refresh),
-                },
-                "message": "Login successful",
-                "status_code": 200
-            }, status=status.HTTP_200_OK)
+                        "status": True,
+                        "data": {
+                            "user": user_data,
+                            "profile": profile_data,
+                            "tokens": tokens
+                        },
+                        "message": "Login successful",
+                        "status_code": 200
+                    }, status=status.HTTP_200_OK)
+
+
+            # return Response({
+            #     "status": True,
+            #     "data": {
+            #         "id": user.id,
+            #         "username": user.username,
+            #         "email": user.email,
+            #         "access": str(refresh.access_token),
+            #         "refresh": str(refresh),
+            #     },
+            #     "message": "Login successful",
+            #     "status_code": 200
+            # }, status=status.HTTP_200_OK)
+        
         else:
             return Response({
                 "status": False,
