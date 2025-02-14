@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager
-
+from cloudinary.models import CloudinaryField
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
         if not email:
@@ -45,7 +45,8 @@ class Subject(models.Model):
     
 class Course(models.Model):   
     subject = models.ForeignKey(Subject, related_name='courses', on_delete=models.CASCADE)   
-    title = models.CharField(max_length=200)    
+    title = models.CharField(max_length=200)   
+    image = CloudinaryField('image',blank=True, null=True)
     description = models.TextField(blank=True)  
     start_date = models.DateField()              
     end_date = models.DateField()    

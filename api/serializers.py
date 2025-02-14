@@ -35,6 +35,7 @@ class StudentSerializer(serializers.ModelSerializer):
         model = Student
         fields = ['student_year', 'student_id']
 
+  
     def create(self, validated_data):
         return Student.objects.create(**validated_data)
 
@@ -46,10 +47,13 @@ class StudentSerializer(serializers.ModelSerializer):
 
 
 class TeacherSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Teacher
         fields = ['student_year', 'student_id']
 
+
+    
     def create(self, validated_data):
 
         teacher = Teacher.objects.create(**validated_data)
@@ -65,11 +69,13 @@ class TeacherSerializer(serializers.ModelSerializer):
 
 
 class CourseSerializer(serializers.ModelSerializer):
+    image_url = serializers.SerializerMethodField()
     class Meta:
         model = Course
-        fields = '__all__'
+        fields = ['id','subject','title','image','image_url','description','start_date','end_date','student_year','is_active']
 
-
+    def get_image_url(self, obj):
+        return obj.image.url if obj.image else None
 
 
 class SubjectSerializer(serializers.ModelSerializer):

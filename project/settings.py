@@ -43,7 +43,8 @@ INSTALLED_APPS = [
     "rest_framework_simplejwt",
     'rest_framework_simplejwt.token_blacklist',
     "corsheaders",
-    'api'
+    'api',
+    'cloudinary',
 ]
 
 MIDDLEWARE = [
@@ -155,3 +156,13 @@ SIMPLE_JWT = {
     'TOKEN_BLACKLISTING': 'rest_framework_simplejwt.token_blacklist.models.BlacklistedToken',
 }
 
+import cloudinary
+import cloudinary.uploader
+import cloudinary.api
+
+cloudinary.config( 
+    cloud_name = "dwnp7ze2a", 
+    api_key = "312258821664118",
+    api_secret = "L-ST31TqioBtPR_LKQ-JE71WrS4", 
+    secure=True
+)
