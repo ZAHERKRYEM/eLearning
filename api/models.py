@@ -59,17 +59,6 @@ class Course(models.Model):
 
 
 
-class Exam(models.Model):
-    teacher = models.ForeignKey('Teacher', related_name='exams', on_delete=models.CASCADE)
-    subject = models.ForeignKey(Subject, related_name='Subject', on_delete=models.CASCADE)      
-    title = models.CharField(max_length=200)   
-    date = models.DateTimeField()              
-    duration = models.PositiveIntegerField()    
-    total_marks = models.PositiveIntegerField() 
-  
-
-    def __str__(self):
-        return self.title
 
 
 
@@ -78,7 +67,7 @@ class Exam(models.Model):
 class Student(models.Model):  
     user = models.OneToOneField(User, on_delete=models.CASCADE)  
     courses = models.ManyToManyField(Course, related_name='students', blank=True)   
-    exams_taken = models.ManyToManyField(Exam, related_name='students', blank=True) 
+    exams_taken = models.ManyToManyField('Exam', related_name='students', blank=True) 
     student_year = models.CharField(max_length=20,blank=True, null=True)
     student_id = models.IntegerField(blank=True, null=True)
 
@@ -96,6 +85,18 @@ class Teacher(models.Model):
 
     def __str__(self):
         return self.user.username
+    
+class Exam(models.Model):
+    teacher = models.ForeignKey('Teacher', related_name='exams', on_delete=models.CASCADE)
+    subject = models.ForeignKey(Subject, related_name='Subject', on_delete=models.CASCADE)      
+    title = models.CharField(max_length=200)   
+    date = models.DateTimeField()              
+    duration = models.PositiveIntegerField()    
+    total_marks = models.PositiveIntegerField() 
+  
+
+    def __str__(self):
+        return self.title
 
 class Video(models.Model):  
     course = models.ForeignKey(Course, related_name='videos', on_delete=models.CASCADE)   

@@ -138,7 +138,7 @@ class ExamSerializer(serializers.ModelSerializer):
 
 class VideoSerializer(serializers.ModelSerializer):
     course = serializers.PrimaryKeyRelatedField(queryset=Course.objects.all())
-    teacher = serializers.PrimaryKeyRelatedField(queryset=Teacher.objects.all())
+    teacher = serializers.StringRelatedField()
 
     class Meta:
         model = Video

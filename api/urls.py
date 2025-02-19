@@ -17,12 +17,12 @@ urlpatterns = [
     path('courses/one-per-year/', OneCoursePerYearView.as_view(), name='one_course_per_year'),
     path('courses/all/', AllCoursesView.as_view(), name='all_courses'),
 
+    path('videos/<int:course_id>', VideoAPIView.as_view(), name='videos'),
 
 
 
      path('subjects/', SubjectAPIView.as_view(), name='subjects'),
     path('courses/', CourseAPIView.as_view(), name='courses'),
     path('exams/', ExamAPIView.as_view(), name='exams'),
-    path('videos/', VideoAPIView.as_view(), name='videos'),
 
 ]

@@ -9,6 +9,11 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenRefreshView
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from .models import Subject, Course, Exam, Video
+from .serializers import SubjectSerializer, CourseSerializer, ExamSerializer, VideoSerializer
 
 class Refreshtoken(TokenRefreshView):
     
@@ -456,6 +461,77 @@ class AllCoursesView(APIView):
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
+class VideoAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request,course_id):
+        videos = Video.objects.filter(course=course_id)
+        serializer = VideoSerializer(videos, many=True)
+        return Response({
+            "status": True,
+            "data": serializer.data,
+            "message": "Videos retrieved successfully",
+            "status_code": 200
+        }, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        serializer = VideoSerializer(data=request.data)
+        if serializer.is_valid():
+            video = serializer.save()
+            return Response({
+                "status": True,
+                "data": VideoSerializer(video).data,
+                "message": "Video created successfully",
+                "status_code": 201
+            }, status=status.HTTP_201_CREATED)
+        return Response({
+            "status": False,
+            "data": serializer.errors,
+            "message": "Video creation failed",
+            "status_code": 400
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+    def put(self, request, pk):
+        try:
+            video = Video.objects.get(pk=pk)
+        except Video.DoesNotExist:
+            return Response({
+                "status": False,
+                "message": "Video not found",
+                "status_code": 404
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = VideoSerializer(video, data=request.data)
+        if serializer.is_valid():
+            video = serializer.save()
+            return Response({
+                "status": True,
+                "data": VideoSerializer(video).data,
+                "message": "Video updated successfully",
+                "status_code": 200
+            }, status=status.HTTP_200_OK)
+        return Response({
+            "status": False,
+            "data": serializer.errors,
+            "message": "Video update failed",
+            "status_code": 400
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        try:
+            video = Video.objects.get(pk=pk)
+            video.delete()
+            return Response({
+                "status": True,
+                "message": "Video deleted successfully",
+                "status_code": 204
+            }, status=status.HTTP_204_NO_CONTENT)
+        except Video.DoesNotExist:
+            return Response({
+                "status": False,
+                "message": "Video not found",
+                "status_code": 404
+            }, status=status.HTTP_404_NOT_FOUND)
 
 
 
@@ -497,11 +573,7 @@ class AllCoursesView(APIView):
 
 
 
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from .models import Subject, Course, Exam, Video
-from .serializers import SubjectSerializer, CourseSerializer, ExamSerializer, VideoSerializer
+
 
 class SubjectAPIView(APIView):
     def get(self, request):
@@ -715,72 +787,4 @@ class ExamAPIView(APIView):
                 "message": "Exam not found",
                 "status_code": 404
             }, status=status.HTTP_404_NOT_FOUND)
-class VideoAPIView(APIView):
-    def get(self, request):
-        videos = Video.objects.all()
-        serializer = VideoSerializer(videos, many=True)
-        return Response({
-            "status": True,
-            "data": serializer.data,
-            "message": "Videos retrieved successfully",
-            "status_code": 200
-        }, status=status.HTTP_200_OK)
 
-    def post(self, request):
-        serializer = VideoSerializer(data=request.data)
-        if serializer.is_valid():
-            video = serializer.save()
-            return Response({
-                "status": True,
-                "data": VideoSerializer(video).data,
-                "message": "Video created successfully",
-                "status_code": 201
-            }, status=status.HTTP_201_CREATED)
-        return Response({
-            "status": False,
-            "data": serializer.errors,
-            "message": "Video creation failed",
-            "status_code": 400
-        }, status=status.HTTP_400_BAD_REQUEST)
-
-    def put(self, request, pk):
-        try:
-            video = Video.objects.get(pk=pk)
-        except Video.DoesNotExist:
-            return Response({
-                "status": False,
-                "message": "Video not found",
-                "status_code": 404
-            }, status=status.HTTP_404_NOT_FOUND)
-
-        serializer = VideoSerializer(video, data=request.data)
-        if serializer.is_valid():
-            video = serializer.save()
-            return Response({
-                "status": True,
-                "data": VideoSerializer(video).data,
-                "message": "Video updated successfully",
-                "status_code": 200
-            }, status=status.HTTP_200_OK)
-        return Response({
-            "status": False,
-            "data": serializer.errors,
-            "message": "Video update failed",
-            "status_code": 400
-        }, status=status.HTTP_400_BAD_REQUEST)
-
-    def delete(self, request, pk):
-        try:
-            video = Video.objects.get(pk=pk)
-            video.delete()
-            return Response({
-                "status": True,
-                "message": "Video deleted successfully",
-                "status_code": 204
-            }, status=status.HTTP_204_NO_CONTENT)
-        except Video.DoesNotExist:
-            return Response({
-                "status": False,
-                "message": "Video not found",
-                "status_code": 404
-            }, status=status.HTTP_404_NOT_FOUND)
