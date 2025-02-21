@@ -6,6 +6,8 @@ urlpatterns = [
     path('register/', UserCreateAPIView.as_view(), name='user-create'),
     path('students/', StudentAPIView.as_view(), name='student-create'),
     path('users/', UserDetailAPIView.as_view(), name='user-detail'), 
+    path('users/', UserDetailAPIView.as_view(), name='user-detail'), 
+    path('users/', UserDetailAPIView.as_view(), name='user-detail'), 
     path('teacher/', TeacherAPIView.as_view(), name='teacher'),
 
     path('login/', LoginView.as_view(), name='login'),

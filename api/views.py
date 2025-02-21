@@ -105,28 +105,143 @@ class UserCreateAPIView(APIView):
             "status_code": 400
         }, status=status.HTTP_400_BAD_REQUEST)
 
-
+from django.core.exceptions import ObjectDoesNotExist
 class UserDetailAPIView(APIView):
     permission_classes = [IsAuthenticated]  
 
     def get(self, request):
-  
-        user = request.user
-        serializer = UserSerializer(user)
-        return Response(serializer.data)
+        user = request.user  # المستخدم المسجل دخوله
+        profile = None
+
+        try:
+            profile = user.student  # جلب بيانات الطالب
+            profile_serializer = StudentSerializer(profile)
+        except ObjectDoesNotExist:
+            try:
+                profile = user.teacher  # جلب بيانات المعلم
+                profile_serializer = TeacherSerializer(profile)
+            except ObjectDoesNotExist:
+                return Response({
+                    "status": False,
+                    "message": "Profile not found",
+                    "status_code": 404
+                }, status=status.HTTP_404_NOT_FOUND)
+
+        user_serializer = UserSerializer(user)
+        return Response({
+            "status": True,
+            "data": {
+                "user": user_serializer.data,
+                "profile": profile_serializer.data
+            },
+            "message": "User and profile retrieved successfully",
+            "status_code": 200
+        }, status=status.HTTP_200_OK)
+        def put(self, request):
+            user = request.user  
+            user_data = request.data.get('user', {})
+            profile_data = request.data.get('profile', {})
+
+            user_serializer = UserSerializer(user, data=user_data, partial=True)
+            if user_serializer.is_valid():
+                user_serializer.save()
+            else:
+                return Response({
+                    "status": False,
+                    "data": user_serializer.errors,
+                    "message": "User update failed",
+                    "status_code": 400
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            if hasattr(user, 'teacher_profile'):
+                profile = user.teacher_profile
+                profile_serializer = TeacherSerializer(profile, data=profile_data, partial=True)
+            elif hasattr(user, 'student_profile'):
+                profile = user.student_profile
+                profile_serializer = StudentSerializer(profile, data=profile_data, partial=True)
+            else:
+                return Response({
+                    "status": False,
+                    "message": "Profile not found",
+                    "status_code": 404
+                }, status=status.HTTP_404_NOT_FOUND)
+
+            if profile_serializer.is_valid():
+                profile_serializer.save()
+                return Response({
+                    "status": True,
+                    "data": {
+                        "user": user_serializer.data,
+                        "profile": profile_serializer.data
+                    },
+                    "message": "User and profile updated successfully",
+                    "status_code": 200
+                }, status=status.HTTP_200_OK)
+            else:
+                return Response({
+                    "status": False,
+                    "data": profile_serializer.errors,
+                    "message": "Profile update failed",
+                    "status_code": 400
+                }, status=status.HTTP_400_BAD_REQUEST)
 
     def put(self, request):
         user = request.user  
-        serializer = UserSerializer(user, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        user_data = request.data.get('user', {})
+        profile_data = request.data.get('profile', {})
+
+        user_serializer = UserSerializer(user, data=user_data, partial=True)
+        if user_serializer.is_valid():
+            user_serializer.save()
+        else:
+            return Response({
+                "status": False,
+                "data": user_serializer.errors,
+                "message": "User update failed",
+                "status_code": 400
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            profile = user.student
+            profile_serializer = StudentSerializer(profile, data=profile_data, partial=True)
+        except ObjectDoesNotExist:
+            try:
+                profile = user.teacher
+                profile_serializer = TeacherSerializer(profile, data=profile_data, partial=True)
+            except ObjectDoesNotExist:
+                return Response({
+                    "status": False,
+                    "message": "Profile not found",
+                    "status_code": 404
+                }, status=status.HTTP_404_NOT_FOUND)
+
+        if profile_serializer.is_valid():
+            profile_serializer.save()
+            return Response({
+                "status": True,
+                "data": {
+                    "user": user_serializer.data,
+                    "profile": profile_serializer.data
+                },
+                "message": "User and profile updated successfully",
+                "status_code": 200
+            }, status=status.HTTP_200_OK)
+        else:
+            return Response({
+                "status": False,
+                "data": profile_serializer.errors,
+                "message": "Profile update failed",
+                "status_code": 400
+            }, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request):
         user = request.user  
         user.delete()
-        return Response({'message': 'User deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
+        return Response({
+            "status": True,
+            "message": "User and profile deleted successfully",
+            "status_code": 204
+        }, status=status.HTTP_204_NO_CONTENT)
 
 class StudentAPIView(APIView):
     permission_classes = [IsAuthenticated]
@@ -332,47 +447,53 @@ class CourseByYearView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-     
         try:
-            student = Student.objects.get(user=request.user)
+            user = request.user
+            student_year = None
 
-         
-            student_year = student.student_year
+        
+            try:
+                student = Student.objects.get(user=user)
+                student_year = student.student_year
+            except Student.DoesNotExist:
+               
+                try:
+                    teacher = Teacher.objects.get(user=user)
+                    student_year = teacher.student_year
+                except Teacher.DoesNotExist:
+                    return Response({
+                        "status": False,
+                        "data": {},
+                        "message": "Logged-in user is neither a student nor a teacher.",
+                        "status_code": 400
+                    }, status=status.HTTP_400_BAD_REQUEST)
 
+            
             if not student_year:
                 return Response({
                     "status": False,
                     "data": {},
-                    "message": "Student year is not set for the logged-in student.",
+                    "message": "Student year is not set for the logged-in user.",
                     "status_code": 400
                 }, status=status.HTTP_400_BAD_REQUEST)
 
-      
-            course = Course.objects.filter(student_year=student_year).order_by('?')[:4]
+            courses = Course.objects.filter(student_year=student_year).order_by('?')[:4]
 
-            if course.exists():
-                serializer = CourseSerializer(course, many=True)
+            if courses.exists():
+                serializer = CourseSerializer(courses, many=True)
                 return Response({
                     "status": True,
                     "data": serializer.data,
-                    "message": " course found successfully.",
+                    "message": "Courses found successfully.",
                     "status_code": 200
                 }, status=status.HTTP_200_OK)
             else:
                 return Response({
                     "status": True,
                     "data": {},
-                    "message": "No course found for the given student year.",
+                    "message": "No courses found for the given student year.",
                     "status_code": 200
                 }, status=status.HTTP_200_OK)
-
-        except Student.DoesNotExist:
-            return Response({
-                "status": False,
-                "data": {},
-                "message": "Logged-in user is not associated with a student account.",
-                "status_code": 400
-            }, status=status.HTTP_400_BAD_REQUEST)
 
         except Exception as e:
             return Response({
@@ -381,6 +502,7 @@ class CourseByYearView(APIView):
                 "message": str(e),
                 "status_code": 500
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 
 class OneCoursePerYearView(APIView):
