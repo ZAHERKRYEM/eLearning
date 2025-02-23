@@ -912,18 +912,14 @@ class ExamAPIView(APIView):
 
 
 
-class TestAPIView(APIView):
+from django.http import JsonResponse
 
-    def get(self, request,):
-
-        return Response({
-            {
-   
-    "title": "The best IT solution",
-    "subtitle": "about us",
-    "experience_years": 20,
-    "description": "We provide the best IT solutions."
-}
-
-          
-        }, status=status.HTTP_200_OK)
+def about_view(request):
+    data = {
+        "id": 1,
+        "title": "The best IT solution",
+        "subtitle": "about us",
+        "experience_years": 20,
+        "description": "We provide the best IT solutions."
+    }
+    return JsonResponse(data)
