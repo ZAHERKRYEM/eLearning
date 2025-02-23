@@ -910,3 +910,20 @@ class ExamAPIView(APIView):
                 "status_code": 404
             }, status=status.HTTP_404_NOT_FOUND)
 
+
+
+class TestAPIView(APIView):
+
+    def get(self, request,):
+
+        return Response({
+            {
+   
+    "title": "The best IT solution",
+    "subtitle": "about us",
+    "experience_years": 20,
+    "description": "We provide the best IT solutions."
+}
+
+          
+        }, status=status.HTTP_200_OK)
